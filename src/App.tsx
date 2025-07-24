@@ -57,6 +57,16 @@ function App() {
   // Auth state management
   useEffect(() => {
     const unsubscribe = blink.auth.onAuthStateChanged((state) => {
+      // Clear data when user changes
+      if (state.user?.id !== user?.id) {
+        console.log('User changed, clearing data:', { 
+          oldUserId: user?.id, 
+          newUserId: state.user?.id 
+        })
+        setTickets([])
+        setOffers([])
+      }
+      
       setUser(state.user)
       setLoading(state.isLoading)
       
@@ -64,11 +74,12 @@ function App() {
       console.log('Auth state changed:', { 
         isAuthenticated: state.isAuthenticated, 
         isLoading: state.isLoading, 
-        hasUser: !!state.user 
+        hasUser: !!state.user,
+        userId: state.user?.id
       })
     })
     return unsubscribe
-  }, [])
+  }, [user?.id])
 
   // Load data when user is authenticated
   useEffect(() => {
@@ -102,8 +113,21 @@ function App() {
 
   const myListings = tickets.filter(ticket => {
     const isMyTicket = ticket.userId === user?.id
-    console.log('Filtering ticket:', { ticketId: ticket.id, ticketUserId: ticket.userId, currentUserId: user?.id, isMyTicket })
+    console.log('Filtering ticket:', { 
+      ticketId: ticket.id, 
+      ticketUserId: ticket.userId, 
+      currentUserId: user?.id, 
+      isMyTicket,
+      ticketUserIdType: typeof ticket.userId,
+      currentUserIdType: typeof user?.id
+    })
     return isMyTicket
+  })
+  
+  console.log('My Listings result:', { 
+    totalTickets: tickets.length, 
+    myListingsCount: myListings.length, 
+    currentUserId: user?.id 
   })
   const receivedOffers = offers.filter(offer => offer.sellerId === user?.id)
   const sentOffers = offers.filter(offer => offer.buyerId === user?.id)
